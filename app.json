@@ -1,0 +1,48 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appId": 1132528,
+    "appName": "Interval",
+    "appType": "app",
+    "version": {
+      "code": 1,
+      "name": "1.0.0"
+    },
+    "icon": "icon.png",
+    "vender": "zepp",
+    "description": "Custom interval timer"
+  },
+  "permissions": ["data:os.device.info"],
+  "runtime": {
+    "apiVersion": {
+      "compatible": "4.0",
+      "target": "4.0",
+      "minVersion": "4.0"
+    }
+  },
+  "targets": {
+    "default": {
+      "module": {
+        "page": {
+          "pages": ["page/menu", "page/index", "page/timer", "page/settings"]
+        }
+      },
+      "platforms": [
+        {
+          "st": "r"
+        }
+      ],
+      "designWidth": 480
+    }
+  },
+  "i18n": {
+    "en-US": {
+      "appName": "Interval"
+    },
+    "zh-TW": {
+      "appName": "間歇計時"
+    }
+  },
+  "defaultLanguage": "en-US",
+  "debug": false
+}
