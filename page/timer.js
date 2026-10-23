@@ -2,7 +2,7 @@ import * as hmUI from '@zos/ui'
 import { exit } from '@zos/router'
 import { setPageBrightTime, resetPageBrightTime } from '@zos/display'
 import { load } from '../utils/store'
-import { t } from '../utils/i18n'
+import { t, fmtTime } from '../utils/i18n'
 import { notify, cancel } from '../utils/alert'
 import { screen } from '../utils/screen'
 
@@ -117,8 +117,7 @@ Page({
 
   render(left) {
     const s = Math.ceil(left / 1000)
-    const mm = Math.floor(s / 60)
-    this.clock.setProperty(hmUI.prop.TEXT, `${mm}:${String(s % 60).padStart(2, '0')}`)
+    this.clock.setProperty(hmUI.prop.TEXT, fmtTime(s))
     if (s <= 3 && s !== this.lastBeep) {
       this.lastBeep = s
       notify('tick', this.cfg)
