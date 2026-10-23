@@ -17,7 +17,7 @@ export function lang(cfg = load()) {
 
 export function t(key, cfg) {
   const dict = T[lang(cfg)] || T.zh
-  return dict[key] !== undefined ? dict[key] : T.zh[key]
+  return dict[key] !== undefined ? dict[key] : T.zh[key] !== undefined ? T.zh[key] : key
 }
 
 export function summary(cfg) {
@@ -34,7 +34,7 @@ const T = {
     settings: '設定',
     presets: '間歇模組',
     prep: '準備',
-    leadIn: '開始前',
+    lead: '準備時間',
     work: '工作',
     rest: '休息',
     sets: '組數',
@@ -70,7 +70,7 @@ const T = {
     settings: 'SETTINGS',
     presets: 'PRESETS',
     prep: 'READY',
-    leadIn: 'Lead-in',
+    lead: 'Prep',
     work: 'Work',
     rest: 'Rest',
     sets: 'Sets',
