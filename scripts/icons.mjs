@@ -1,11 +1,11 @@
 // 產生計時頁的圖示按鈕, 輸出 assets/default.r/images/*.png
-// 三颗按鈕拼成一個橫放的膠囊 (tiling 在一起): 左右两端圓角, 中間兩道細分隔線
+// 三顆按鈕拼成一個橫放的膠囊 (tiling 在一起): 左右兩端圓角, 中間兩道細分隔線
 // 用繪圖軟體改 icon 太囉唆: 形狀就這四個, 用程式畫還順便留著怎麼畫。
 // 執行: node scripts/icons.mjs
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
 
-const H = 68
+const H = 84
 const CY = H / 2
 const SS = 4 // 4×4 超取樣, 邊緣才不會有鋸齒
 const BG = [0x00, 0x00, 0x00]
@@ -32,19 +32,21 @@ function inTri(x, y, a, b, c) {
   return (s1 >= 0 && s2 >= 0 && s3 >= 0) || (s1 <= 0 && s2 <= 0 && s3 <= 0)
 }
 
-// 圖示都以該段的中心為原點畫
+// 圖示都以該段的中心為原點畫 (半高 I 跟著膠囊高度走, 膠囊拉高圖示也一起大)
+const I = 19
 const icons = {
   // 播放: 向右的三角形
-  play: (x, y, cx) => inTri(x, y, [cx - 10, CY - 16], [cx - 10, CY + 16], [cx + 13, CY]),
+  play: (x, y, cx) => inTri(x, y, [cx - 11, CY - I], [cx - 11, CY + I], [cx + 14, CY]),
   // 暫停: 兩根直條
   pause: (x, y, cx) =>
-    inRect(x, y, cx - 13, CY - 16, cx - 5, CY + 16) || inRect(x, y, cx + 5, CY - 16, cx + 13, CY + 16),
+    inRect(x, y, cx - 14, CY - I, cx - 6, CY + I) || inRect(x, y, cx + 6, CY - I, cx + 14, CY + I),
   // 停止: 方形
-  stop: (x, y, cx) => inRect(x, y, cx - 14, CY - 14, cx + 14, CY + 14),
+  stop: (x, y, cx) =>
+    inRect(x, y, cx - I, CY - I, cx + I, CY + I),
   // 跳過: 三角形 + 尾端直條
   skip: (x, y, cx) =>
-    inTri(x, y, [cx - 14, CY - 16], [cx - 14, CY + 16], [cx + 8, CY]) ||
-    inRect(x, y, cx + 11, CY - 16, cx + 16, CY + 16),
+    inTri(x, y, [cx - 15, CY - I], [cx - 15, CY + I], [cx + 9, CY]) ||
+    inRect(x, y, cx + 12, CY - I, cx + 18, CY + I),
 }
 
 // 三顆按鈕的畫布寬度 (左 123 + 中 122 + 右 123 = 368 = 膠囊總寬)
@@ -69,7 +71,7 @@ function render(slot, bg) {
           if (!inSeg(px_, py, slot.w, slot.cap)) continue
           bgCov++
           // 分隔線只畫在段內, 高度比膠囊短一截看起來才不會太硬
-          const divider = slot.line && px_ >= slot.w - 1 && py >= 18 && py <= 50
+          const divider = slot.line && px_ >= slot.w - 1 && py >= CY - 22 && py <= CY + 22
           const c = icon(px_, py, slot.w / 2) ? INK : divider ? LINE : bg
           for (let i = 0; i < 3; i++) sum[i] += c[i]
         }

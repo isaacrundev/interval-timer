@@ -105,9 +105,9 @@ Page({
     const pill = (x, w, name, fn) =>
       root.createWidget(hmUI.widget.BUTTON, {
         x,
-        y: 306,
+        y: 300,
         w,
-        h: 68,
+        h: 84,
         normal_src: `images/${name}_n.png`,
         press_src: `images/${name}_p.png`,
         click_func: fn,
