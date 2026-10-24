@@ -38,7 +38,7 @@ Page({
       [t('len1', cfg), t('len2', cfg), t('len3', cfg)],
       [1, 2, 3],
       t('hintLen', cfg),
-      () => preview(cfg), // 按一下就試聽新的震動長度
+      () => preview(cfg), // 按一下就試聽新的震動強度
     )
     this.w.tickAlert = this.alertRow(
       536,

@@ -3,18 +3,20 @@ import { load } from './store'
 
 // 震動一律用「數字場景」: 具名常數 (VIBRATOR_SCENE_*) 在部分韌體上拿不到值,
 // 傳進去等於沒傳, 手錶就只用預設的 20ms 弱弱震一下 — 這就是要什麼都無感的原因
-// 23 = 輕 20ms, 25 = 強 20ms, 28 = 強 600ms, 0 = 兩下短震 (同訊息通知)
-// 5 = 高強度長震且「連續驅動」(手錶鬧鐘/倒數用的那個), 馬達一直在轉, 力道比單發 600ms 大一截
-const SCENE = { light: 23, notif: 0, drive: 5 }
-const PULSE = { scene: SCENE.drive, dur: 600, cut: 600 } // 一下 = 連續震 600ms; 600ms 就切電(它不是會自己停的場景)
-const GAP = 200 // 兩下之間留白, 才數得出幾下
-// 震動長度 = 幾下: 長度完全由 app 數出來, 不靠手錶認得哪個場景
-const LEN = [1, 2, 3] // 短 .6秒 / 中 1.4秒 / 長 2.2秒
+// 23 = 輕 20ms, 24 = 中 20ms, 25 = 強 20ms, 0 = 兩下短震 (同訊息通知)
+// 5 = 高強度長震且「連續驅動」(手錶鬧鐘/倒數用的那個), 馬達一直在轉, 力道比 20ms 大一截
+const SCENE = { light: 23, notif: 0 }
+// 震動強度 = 單下, 只換場景: 弱 (中強度一下) / 中 (高強度一下) / 強 (高強度連續 600ms)
+const LEVEL = [
+  { scene: 24, cut: 120 },
+  { scene: 25, cut: 120 },
+  { scene: 5, cut: 600 },
+]
 // 休息與最後 3 秒用固定場景, 刻意不受設定影響
 // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
 const FIXED = {
-  rest: { scene: SCENE.notif, dur: 0, cut: 800 },
-  tick: { scene: SCENE.light, dur: 0, cut: 60 },
+  rest: { scene: SCENE.notif, cut: 800 },
+  tick: { scene: SCENE.light, cut: 60 },
 }
 const SND = { work: 'ALARM', rest: 'MESSAGE', tick: 'CAMERA', done: 'ACHIEVE' }
 
@@ -44,18 +46,14 @@ export function notify(kind, cfg = load()) {
   if (mode !== 'vib') playSound(SND[kind])
 }
 
-// 設定頁按一下先試聽新的震動長度 (只震, 不出聲)
+// 設定頁按一下先試聽新的震動強度 (只震, 不出聲)
 export function preview(cfg = load()) {
   cancel()
   vibrate('work', cfg)
 }
 
 function vibrate(kind, cfg) {
-  const fixed = FIXED[kind]
-  const spec = fixed || PULSE
-  const count = fixed ? 1 : LEN[(Number(cfg.vibLen) || 1) - 1]
-  const g = gen
-  for (let i = 0; i < count; i++) setTimeout(() => pulse(g, spec), i * (spec.dur + GAP))
+  pulse(gen, FIXED[kind] || LEVEL[(Number(cfg.vibLen) || 2) - 1])
 }
 
 function pulse(g, { scene, cut }) {
