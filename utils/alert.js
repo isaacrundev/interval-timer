@@ -47,7 +47,7 @@ export function notify(kind, cfg = load()) {
   if (mode !== 'vib') playSound(SND[kind])
 }
 
-// 設定頁按一下先試聽新的震動強度 (只震, 不出聲)
+// 設定頁按一下先試聽新的震動長度 (只震, 不出聲)
 export function preview(cfg = load()) {
   cancel()
   vibrate('work', cfg)
