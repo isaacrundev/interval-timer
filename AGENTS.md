@@ -22,6 +22,14 @@ cd /tmp/zos-stub && for t in store-test test i18n-test pages-test; do node --imp
 node /tmp/i18n-check.mjs                                    # 字典 key 對稱 + 值必須是字串
 ```
 
+## 每次 commit 後要給 QR code
+
+只要有新的 commit，回應的最後一定要跑一次 preview 並把 QR code 貼給使用者（他要掃進手錶實測）：
+
+```bash
+zeus preview --target "Amazfit Balance 2"
+```
+
 ## 這個專案的使用者偏好
 
 - 使用者用中文溝通；App 本身是雙語（`utils/i18n.js`，預設跟隨錶面語言）
