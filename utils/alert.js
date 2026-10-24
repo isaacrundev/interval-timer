@@ -4,8 +4,9 @@ import { load } from './store'
 // 震動一律用「數字場景」: 具名常數 (VIBRATOR_SCENE_*) 在部分韌體上拿不到值,
 // 傳進去等於沒傳, 手錶就只用預設的 20ms 弱弱震一下 — 這就是要什麼都無感的原因
 // 23 = 輕 20ms, 25 = 強 20ms, 28 = 強 600ms, 0 = 兩下短震 (同訊息通知)
-const SCENE = { light: 23, notif: 0, strong600: 28 }
-const PULSE = { scene: SCENE.strong600, dur: 600, cut: 750 } // 一下 = 600ms 高強度; 750ms 才硬停, 留點尾巴
+// 5 = 高強度長震且「連續驅動」(手錶鬧鐘/倒數用的那個), 馬達一直在轉, 力道比單發 600ms 大一截
+const SCENE = { light: 23, notif: 0, drive: 5 }
+const PULSE = { scene: SCENE.drive, dur: 600, cut: 600 } // 一下 = 連續震 600ms; 600ms 就切電(它不是會自己停的場景)
 const GAP = 200 // 兩下之間留白, 才數得出幾下
 // 震動長度 = 幾下: 長度完全由 app 數出來, 不靠手錶認得哪個場景
 const LEN = [1, 2, 3] // 短 .6秒 / 中 1.4秒 / 長 2.2秒
@@ -73,8 +74,8 @@ function pulse(g, { scene, cut }) {
     console.log('vibrate failed', e)
     return
   }
-  // 場景自己會停, 但韌體不一定照文件走, 所以時間到再硬停一次
-  setTimeout(() => g === gen && stopVib(), cut)
+  // 連續震動場景必須自己停, 所以多停一次 (120ms 後), 第一次被韌體吞掉也斷得了電
+  for (const t of [cut, cut + 120]) setTimeout(() => g === gen && stopVib(), t)
 }
 
 function stopVib() {
