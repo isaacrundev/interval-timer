@@ -6,11 +6,11 @@ import { load } from './store'
 // 23 = 輕 20ms, 0 = 兩下短震 (同訊息通知), 5 = 高強度「連續驅動」(手錶鬧鐘/倒數那個)
 const SCENE = { light: 23, notif: 0, drive: 5 }
 // 實測結論: 這台錶只有「連續驅動」場景 (5) 真的有感, 20ms (23/25) 和 600ms 單發 (28) 聽起來一樣小
-// (28 大概沒被韌體認得, 掉回預設 20ms)。所以三級都用 5, 靠「震多久」分。
-// 場景 5 是 500ms 一下、自己重複的循環: 切電時間差不到 500ms 就落在同一輪, 聽起來一模一樣
-// (400 vs 600 實測就是這樣)。所以三級必須彼此差 500ms 以上, 且都比一輪長:
-//   弱 400ms / 中 900ms / 強 1400ms
-const DRIVE = [400, 900, 1400]
+// (28 大概沒被韌體認得, 掉回預設 20ms)。而場景 5 是 500ms 一下就自己重複的循環:
+// 切電時間差不到一輪就落在同一個循環裡, 體感一模一樣 (400/600 與 900/1400 都實測失敗)。
+// 所以只留兩級, 而且拉到 4 倍差距, 保証跨好幾輪:
+//   弱 300ms (半下) / 強 1200ms (兩輪多)
+const DRIVE = [300, 1200]
 // 休息與最後 3 秒用固定場景, 刻意不受設定影響
 // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
 const FIXED = {
@@ -52,8 +52,8 @@ export function preview(cfg = load()) {
 }
 
 function vibrate(kind, cfg) {
-  const cut = DRIVE[(Number(cfg.vibLen) || 2) - 1]
-  pulse(gen, FIXED[kind] || { scene: SCENE.drive, cut })
+  const lv = Math.min(2, Math.max(1, Number(cfg.vibLen) || 2))
+  pulse(gen, FIXED[kind] || { scene: SCENE.drive, cut: DRIVE[lv - 1] })
 }
 
 function pulse(g, { scene, cut }) {

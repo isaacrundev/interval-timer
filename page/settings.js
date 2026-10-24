@@ -35,8 +35,8 @@ Page({
       412,
       'vibLen',
       t('vibLen', cfg),
-      [t('len1', cfg), t('len2', cfg), t('len3', cfg)],
-      [1, 2, 3],
+      [t('len1', cfg), t('len2', cfg)],
+      [1, 2],
       t('hintLen', cfg),
       () => preview(cfg), // 按一下就試聽新的震動強度
     )
