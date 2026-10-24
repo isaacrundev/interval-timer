@@ -1,5 +1,5 @@
 import * as hmUI from '@zos/ui'
-import { exit } from '@zos/router'
+import { replace } from '@zos/router'
 import {
   setPageBrightTime,
   resetPageBrightTime,
@@ -194,7 +194,7 @@ Page({
   stop() {
     cancel()
     letSleep()
-    exit()
+    replace({ url: 'page/menu' }) // 回主畫面, 不要退出整個小程式
   },
 
   onDestroy() {
