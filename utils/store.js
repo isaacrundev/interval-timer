@@ -15,7 +15,7 @@ export const DEFAULTS = {
   presets: PRESETS,
   preset: 0, // 最後一次開始用的是哪一組（也是編輯中的那一組）
   alert: 'vib',
-  vibLen: 2, // 1 = 弱 / 2 = 強
+  vibLen: 2, // 1 = 短 250ms / 2 = 長 480ms (震動長度, 不是力道: 手錶只有連續驅動才有感)
   tickAlert: 'off',
   lang: 'auto',
 }
@@ -36,7 +36,7 @@ export function load() {
   for (const k of ['work', 'rest', 'sets', 'rounds']) delete cfg[k] // 舊版欄位, 已搬進 presets
   cfg.presets = PRESETS.map((d, i) => ({ ...d, ...(saved[i] || {}), ...(i === 0 ? legacy : {}) }))
   cfg.preset = Math.min(PRESETS.length - 1, Math.max(0, cfg.preset | 0))
-  cfg.vibLen = Math.min(2, Math.max(1, cfg.vibLen | 0)) // 舊版有 3 級 (1/2/3), 現在只留 弱 1 / 強 2
+  cfg.vibLen = Math.min(2, Math.max(1, cfg.vibLen | 0)) // 舊版有 3 級 (1/2/3), 現在只留 短 1 / 長 2
   return cfg
 }
 
