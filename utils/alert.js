@@ -13,6 +13,8 @@ import { load } from './store'
 const LEN = [VIBRATOR_SCENE_DURATION, VIBRATOR_SCENE_DURATION_LONG, VIBRATOR_SCENE_STRONG_REMINDER]
 // 休息與最後 3 秒用固定場景: 短到不會和前後一下連起來, 所以刻意不受 VIB LEN 影響
 const FIXED = { rest: VIBRATOR_SCENE_NOTIFICATION, tick: VIBRATOR_SCENE_SHORT_LIGHT }
+// 最後 3 秒每秒一下: 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
+const TICK_CUT = 60
 const SND = { work: 'ALARM', rest: 'MESSAGE', tick: 'CAMERA', done: 'ACHIEVE' }
 
 const vib = new Vibrator()
@@ -25,14 +27,19 @@ export function notify(kind, cfg = load()) {
   cancel()
   if (mode !== 'sound') {
     vib.start({ mode: FIXED[kind] || LEN[(Number(cfg.vibLen) || 1) - 1] })
+    if (kind === 'tick') setTimeout(stopVib, TICK_CUT)
   }
   if (mode !== 'vib') playSound(SND[kind])
 }
 
-export function cancel() {
+function stopVib() {
   try {
     vib.stop()
   } catch (e) {}
+}
+
+export function cancel() {
+  stopVib()
   try {
     sounds && sounds.stop()
   } catch (e) {}
