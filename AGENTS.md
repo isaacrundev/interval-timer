@@ -30,6 +30,10 @@ node /tmp/i18n-check.mjs                                    # 字典 key 對稱 
 zeus preview --target "Amazfit Balance 2"
 ```
 
+## 不要用管線餵互動式 CLI
+
+`zeus bridge` 是 vorpal REPL（需要真 TTY）。用 `printf ... | zeus bridge`、`script -q /dev/null` 或背景 `sleep` 餵指令會直接卡死整個工具呼叫（macOS 也沒有 `timeout`）。互動式指令只給使用者自己在終端機跑，agent 不要代跑；非互動需求用 `zeus status` / `zeus preview` 這類一次性指令。
+
 ## 這個專案的使用者偏好
 
 - 使用者用中文溝通；App 本身是雙語（`utils/i18n.js`，預設跟隨錶面語言）
