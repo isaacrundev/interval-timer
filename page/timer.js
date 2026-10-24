@@ -1,12 +1,43 @@
 import * as hmUI from '@zos/ui'
 import { exit } from '@zos/router'
-import { setPageBrightTime, resetPageBrightTime } from '@zos/display'
+import {
+  setPageBrightTime,
+  resetPageBrightTime,
+  pauseDropWristScreenOff,
+  resetDropWristScreenOff,
+  pausePalmScreenOff,
+  resetPalmScreenOff,
+} from '@zos/display'
 import { load } from '../utils/store'
 import { t, fmtTime } from '../utils/i18n'
 import { notify, cancel } from '../utils/alert'
 import { screen } from '../utils/screen'
 
 const BG = { lead: 0xd68910, work: 0xc0392b, rest: 0x1e8449, done: 0x1f618d }
+
+// 一次 session 最長 2 小時: 亮屏與「不准熄屏」都在這個窗內有效
+const SESSION = 2 * 60 * 60 * 1000
+
+// 數數時一定看得見也算得下去: 螢幕常亮, 而且放下手(落腕)或蓋掌都不熄屏.
+// 光設亮屏時間沒用: 這兩個手勢照樣熄屏, 而系統在息屏 10 秒後就退出小程式, 倒數和提示全斷.
+function keepAwake() {
+  try {
+    setPageBrightTime({ brightTime: SESSION })
+    pauseDropWristScreenOff({ duration: SESSION })
+    pausePalmScreenOff({ duration: SESSION })
+  } catch (e) {
+    console.log('keep screen on failed', e)
+  }
+}
+
+// 停止/完成/離開頁面就交還系統, 否則手錶接下來不會再自動熄屏
+function letSleep() {
+  try {
+    resetDropWristScreenOff()
+    resetPalmScreenOff()
+    resetPageBrightTime()
+  } catch (e) {}
+}
 
 Page({
   onInit() {
@@ -35,8 +66,7 @@ Page({
   },
 
   build() {
-    // shortcut: 螢幕熄滅後頁面計時會停. 要撐過熄屏得改寫成 app-service + createSysTimer
-    setPageBrightTime({ brightTime: 2 * 60 * 60 * 1000 })
+    keepAwake()
 
     this.bg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
       x: 0,
@@ -106,6 +136,11 @@ Page({
 
   tick() {
     if (this.finished || this.paused) return
+    // 系統有可能把暫停熄屏清掉 (例如中途按鍵亮/熄屏), 每 10 秒補一次
+    if (Date.now() >= (this.awakeAt || 0)) {
+      this.awakeAt = Date.now() + 10000
+      keepAwake()
+    }
     let left = this.endsAt - Date.now()
     while (left <= 0 && this.idx + 1 < this.q.length) {
       this.startPhase(this.idx + 1)
@@ -153,16 +188,18 @@ Page({
     this.label.setProperty(hmUI.prop.TEXT, t('allDone', this.cfg))
     this.clock.setProperty(hmUI.prop.TEXT, t('done', this.cfg))
     notify('done', this.cfg)
+    letSleep()
   },
 
   stop() {
     cancel()
-    resetPageBrightTime()
+    letSleep()
     exit()
   },
 
   onDestroy() {
     clearInterval(this.timer)
     cancel()
+    letSleep()
   },
 })

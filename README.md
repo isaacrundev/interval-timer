@@ -74,7 +74,11 @@ REST 與最後 3 秒的讀秒是**固定短震，不可調**（`utils/alert.js` 
 
 聲音用 `SystemSounds`（API_LEVEL 3.6 的系統鈴聲，不用自帶音檔）。手錶關掉系統鈴聲時 `getEnabled()` 回 false，會靜音但不會出錯。
 
-## 已知限制
+## 螢幕常亮
 
-`setPageBrightTime` 會在整個 session 期間保持螢幕亮著（預設 2 小時），因為頁面的 `setInterval` 在熄屏後會停。
-若要撐過熄屏，把計時邏輯搬到 `app-service` 並改用 `createSysTimer`（`@zos/timer`，API_LEVEL 4.0）。
+倒數頁一 build 就 `keepAwake()`：`setPageBrightTime`（2 小時）＋ `pauseDropWristScreenOff` / `pausePalmScreenOff`（`@zos/display`，API_LEVEL 2.1，duration = 2 小時），`tick()` 再每 10 秒補一次（系統可能中途把暫停熄屏清掉）。
+
+只設亮屏時間不夠：放下手（落腕）與蓋掌是系統手勢，照樣會熄屏，而小程式息屏後 **10 秒系統就退出小程式**，倒數和提示會整個斷掉——這就是連這兩個手勢一起暫停的原因。
+
+停止、全部完成、頁面被收掉時 `letSleep()` 會把三者還原，否則手錶之後不會再自動熄屏。
+若要撐過「被別的原因熄屏」（例如中途按鍵熄屏很久），才需要把計時搬到 `app-service` 並改用 `createSysTimer`（`@zos/timer`，API_LEVEL 4.0）。
