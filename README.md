@@ -20,7 +20,8 @@ zeus preview                # 產生 QR code，裝到真錶
 - `page/menu.js` — 主選單（開始 = 快速開始、間歇模組、設定；副標顯示最後一次用的那組）
 - `page/index.js` — 5 組間歇模組編輯頁（上方 1–5 切換，下方準備時間/工作/休息/組數/輪數，點數值開轉盤，存到 `interval-cfg.json`）
 - `page/settings.js` — 設定頁（語言 + 提示方式 / 震動長度 / 最後 3 秒）
-- `page/timer.js` — 倒數頁（階段背景色、每秒更新、階段切換提示、暫停/跳過/停止）
+- `page/timer.js` — 倒數頁（階段背景色、每秒更新、階段切換提示、播放器式圖示按鈕：跳過／暫停↔播放／停止）
+- `scripts/icons.mjs` — 產生上面那組圖示按鈕的 PNG（`node scripts/icons.mjs`，改形狀就改這支）
 - `utils/i18n.js` — 中／英字典、語言判定、`fmtTime()`（秒 → `分:秒`）
 - `utils/alert.js` — 提示實作（震動重覆、系統鈴聲播放、取消）
 - `utils/store.js` — 設定讀寫（5 組模組 + 提醒/語言設定，含舊版單組設定升級）

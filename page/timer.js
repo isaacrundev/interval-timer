@@ -100,24 +100,24 @@ Page({
       align_v: hmUI.align.CENTER_V,
     })
 
-    const btn = (x, text, fn) =>
+    // 播放器式圖示: 圖一看就懂, 也不必翻譯 (圖檔來源 scripts/icons.mjs)
+    const btn = (x, name, fn) =>
       root.createWidget(hmUI.widget.BUTTON, {
         x,
         y: 306,
         w: 112,
         h: 68,
-        radius: 34,
-        normal_color: 0x000000,
-        press_color: 0x333338,
-        text,
-        color: 0xffffff,
-        text_size: 26,
+        normal_src: `images/${name}_n.png`,
+        press_src: `images/${name}_p.png`,
         click_func: fn,
       })
 
-    btn(56, t('skip', this.cfg), () => this.skip())
-    this.pauseBtn = btn(184, t('pause', this.cfg), () => this.togglePause())
-    btn(312, t('stop', this.cfg), () => this.stop())
+    btn(56, 'skip', () => this.skip())
+    // BUTTON 的背景圖不能換, 所以暫停/播放是同位疊著的兩顆, 一次只顯示一顆
+    this.pauseBtn = btn(184, 'pause', () => this.togglePause())
+    this.playBtn = btn(184, 'play', () => this.togglePause())
+    this.playBtn.setProperty(hmUI.prop.VISIBLE, false)
+    btn(312, 'stop', () => this.stop())
 
     this.startPhase(0)
     this.timer = setInterval(() => this.tick(), 250)
@@ -159,25 +159,22 @@ Page({
     }
   },
 
+  setPaused(on) {
+    this.paused = on
+    this.pauseBtn.setProperty(hmUI.prop.VISIBLE, !on)
+    this.playBtn.setProperty(hmUI.prop.VISIBLE, on)
+  },
+
   togglePause() {
     if (this.finished) return
-    if (this.paused) {
-      this.endsAt = Date.now() + this.pausedLeft
-      this.paused = false
-      this.pauseBtn.setProperty(hmUI.prop.TEXT, t('pause', this.cfg))
-    } else {
-      this.pausedLeft = this.endsAt - Date.now()
-      this.paused = true
-      this.pauseBtn.setProperty(hmUI.prop.TEXT, t('resume', this.cfg))
-    }
+    if (this.paused) this.endsAt = Date.now() + this.pausedLeft
+    else this.pausedLeft = this.endsAt - Date.now()
+    this.setPaused(!this.paused)
   },
 
   skip() {
     if (this.finished) return
-    if (this.paused) {
-      this.paused = false
-      this.pauseBtn.setProperty(hmUI.prop.TEXT, t('pause', this.cfg))
-    }
+    if (this.paused) this.setPaused(false)
     if (this.idx + 1 >= this.q.length) return this.finish()
     this.startPhase(this.idx + 1)
   },
