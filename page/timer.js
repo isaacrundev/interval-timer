@@ -101,23 +101,24 @@ Page({
     })
 
     // 播放器式圖示: 圖一看就懂, 也不必翻譯 (圖檔來源 scripts/icons.mjs)
-    const btn = (x, name, fn) =>
+    // 三顆圖示按鈕拼成一個橫放的膠囊 (左 123 + 中 122 + 右 123 = 368), 圖檔來源 scripts/icons.mjs
+    const pill = (x, w, name, fn) =>
       root.createWidget(hmUI.widget.BUTTON, {
         x,
         y: 306,
-        w: 112,
+        w,
         h: 68,
         normal_src: `images/${name}_n.png`,
         press_src: `images/${name}_p.png`,
         click_func: fn,
       })
 
-    btn(56, 'skip', () => this.skip())
+    pill(56, 123, 'skip', () => this.skip())
     // BUTTON 的背景圖不能換, 所以暫停/播放是同位疊著的兩顆, 一次只顯示一顆
-    this.pauseBtn = btn(184, 'pause', () => this.togglePause())
-    this.playBtn = btn(184, 'play', () => this.togglePause())
+    this.pauseBtn = pill(179, 122, 'pause', () => this.togglePause())
+    this.playBtn = pill(179, 122, 'play', () => this.togglePause())
     this.playBtn.setProperty(hmUI.prop.VISIBLE, false)
-    btn(312, 'stop', () => this.stop())
+    pill(301, 123, 'stop', () => this.stop())
 
     this.startPhase(0)
     this.timer = setInterval(() => this.tick(), 250)
