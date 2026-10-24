@@ -5,13 +5,11 @@ import { load } from './store'
 // 傳進去等於沒傳, 手錶就只用預設的 20ms 弱弱震一下 — 這就是要什麼都無感的原因
 // 23 = 輕 20ms, 24 = 中 20ms, 25 = 強 20ms, 0 = 兩下短震 (同訊息通知)
 // 5 = 高強度長震且「連續驅動」(手錶鬧鐘/倒數用的那個), 馬達一直在轉, 力道比 20ms 大一截
-const SCENE = { light: 23, notif: 0 }
-// 震動強度 = 單下, 只換場景: 弱 (中強度一下) / 中 (高強度一下) / 強 (高強度連續 600ms)
-const LEVEL = [
-  { scene: 24, cut: 120 },
-  { scene: 25, cut: 120 },
-  { scene: 5, cut: 600 },
-]
+const SCENE = { light: 23, notif: 0, drive: 5 }
+// 震動強度 = 單下, 但分級看「驅動時間」: 手錶的 20ms 輕/中/強三種強度在手臂上幾乎分不出來,
+// 長短才真的有威弱之別 (短 = 沒力, 長 = 有力且持久)
+// 弱 / 中 / 強 = 200 / 400 / 600ms
+const DRIVE = [200, 400, 600]
 // 休息與最後 3 秒用固定場景, 刻意不受設定影響
 // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
 const FIXED = {
@@ -53,7 +51,8 @@ export function preview(cfg = load()) {
 }
 
 function vibrate(kind, cfg) {
-  pulse(gen, FIXED[kind] || LEVEL[(Number(cfg.vibLen) || 2) - 1])
+  const cut = DRIVE[(Number(cfg.vibLen) || 2) - 1]
+  pulse(gen, FIXED[kind] || { scene: SCENE.drive, cut })
 }
 
 function pulse(g, { scene, cut }) {
