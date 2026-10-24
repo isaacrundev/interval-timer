@@ -2,21 +2,17 @@ import {
   Vibrator,
   SystemSounds,
   VIBRATOR_SCENE_DURATION,
-  VIBRATOR_SCENE_DURATION_LONG,
-  VIBRATOR_SCENE_STRONG_REMINDER,
   VIBRATOR_SCENE_NOTIFICATION,
   VIBRATOR_SCENE_SHORT_LIGHT,
 } from '@zos/sensor'
 import { load } from './store'
 
-// 一次提示 = 一次震動, 不重覆也不排隊, 最長 1.2 秒
-// ms 是文件上的表定長度, 一律照它硬停: 手錶不一定讓場景自己收尾, 不硬停就會一直震
-const LEN = [
-  { mode: VIBRATOR_SCENE_DURATION, ms: 600 }, // 短
-  { mode: VIBRATOR_SCENE_DURATION_LONG, ms: 1000 }, // 中
-  { mode: VIBRATOR_SCENE_STRONG_REMINDER, ms: 1200 }, // 長
-]
-// 休息與最後 3 秒用固定場景: 短到不會和前後一下連起來, 所以刻意不受 VIB LEN 影響
+// 只用「一定會自己停」的短場景: 持續震動類 (CALL / TIMER) 與 STRONG_REMINDER 在部分韌體上停不下來, 所以不用
+const PULSE = { mode: VIBRATOR_SCENE_DURATION, ms: 600 } // 高強度短震 600ms
+const GAP = 200 // 兩下之間留白, 才數得出幾下
+// 震動長度 = 幾下: 長度完全由 app 數出來, 不靠手錶認得哪個場景 (它常常不認)
+const LEN = [1, 2, 3] // 短 .6秒 / 中 1.4秒 / 長 2.2秒
+// 休息與最後 3 秒用固定場景, 刻意不受設定影響
 // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
 const FIXED = {
   rest: { mode: VIBRATOR_SCENE_NOTIFICATION, ms: 800 },
@@ -26,7 +22,7 @@ const SND = { work: 'ALARM', rest: 'MESSAGE', tick: 'CAMERA', done: 'ACHIEVE' }
 
 const vib = new Vibrator()
 let sounds = null
-// 每次震動一個號: 舊的停止排程只停得到自己那一次, 不會把下一次震動提早切掉
+// 每一輪提示一個號: 舊的排程只停得到自己那一輪, 不會把下一輪切掉
 let gen = 0
 
 // 階段切換 / 完成用 ALERT, 最後 3 秒的每秒提示用 tickAlert, 兩者互不影響
@@ -34,25 +30,35 @@ export function notify(kind, cfg = load()) {
   const mode = (kind === 'tick' ? cfg.tickAlert : cfg.alert) || 'off'
   if (mode === 'off') return
   cancel()
-  if (mode !== 'sound') buzz(FIXED[kind] || LEN[(Number(cfg.vibLen) || 1) - 1])
+  if (mode !== 'sound') vibrate(kind, cfg)
   if (mode !== 'vib') playSound(SND[kind])
 }
 
-// setMode 和 start 都帶同一個 mode: 有的韌體只認其中一條路; 之後無論如何都硬停
-function buzz({ mode, ms }) {
-  const g = ++gen
+// 設定頁按一下先試聽新的震動長度 (只震, 不出聲)
+export function preview(cfg = load()) {
+  cancel()
+  vibrate('work', cfg)
+}
+
+function vibrate(kind, cfg) {
+  const fixed = FIXED[kind]
+  const spec = fixed || PULSE
+  const count = fixed ? 1 : LEN[(Number(cfg.vibLen) || 1) - 1]
+  const g = gen
+  for (let i = 0; i < count; i++) setTimeout(() => pulse(g, spec), i * (spec.ms + GAP))
+}
+
+function pulse(g, { mode, ms }) {
+  if (g !== gen) return
   try {
     vib.setMode({ mode })
-  } catch (e) {}
-  try {
     vib.start({ mode })
   } catch (e) {
     console.log('vibrate failed', e)
     return
   }
-  setTimeout(() => {
-    if (g === gen) stopVib()
-  }, ms)
+  // 場景自己會停, 但韌體不一定照文件走, 所以照表定長度再硬停一次
+  setTimeout(() => g === gen && stopVib(), ms)
 }
 
 function stopVib() {
@@ -62,6 +68,7 @@ function stopVib() {
 }
 
 export function cancel() {
+  gen++ // 還沒播的下幾下就不播了
   stopVib()
   try {
     sounds && sounds.stop()

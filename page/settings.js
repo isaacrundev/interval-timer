@@ -3,6 +3,7 @@ import { replace } from '@zos/router'
 import { SystemSounds } from '@zos/sensor'
 import { load, save } from '../utils/store'
 import { t } from '../utils/i18n'
+import { preview } from '../utils/alert'
 import { screen, pad } from '../utils/screen'
 
 const ROW = { x: 48, w: 384, h: 72, radius: 36 }
@@ -37,6 +38,7 @@ Page({
       [t('len1', cfg), t('len2', cfg), t('len3', cfg)],
       [1, 2, 3],
       t('hintLen', cfg),
+      () => preview(cfg), // 按一下就試聽新的震動長度
     )
     this.w.tickAlert = this.alertRow(
       536,
@@ -81,15 +83,15 @@ Page({
       click_func: () => {
         cfg[key] = values[(values.indexOf(cfg[key]) + 1) % values.length]
         save(cfg)
-        if (onPick) return onPick()
         this.w[key].setProperty(hmUI.prop.TEXT, `${title}: ${label()}`)
+        if (onPick) return onPick()
       },
     })
   },
 
   // 提示區的列: 下面多一行說明它什麼時候生效
-  alertRow(y, key, title, labels, values, hint) {
-    const btn = this.row(y, key, title, labels, values)
+  alertRow(y, key, title, labels, values, hint, onPick) {
+    const btn = this.row(y, key, title, labels, values, onPick)
     this.text(0, y + 84, 32, 20, hint, 0x777b80)
     return btn
   },
