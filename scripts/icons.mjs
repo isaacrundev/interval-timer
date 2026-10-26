@@ -8,7 +8,7 @@ import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
 
 const C = 240 // 錶面圓心
-const R = 232 // 弧的半徑 (螢幕半徑 240, 留 8px 邊)
+const R = 240 // 弧的半徑 = 螢幕半徑, 面板才會貼死錶面邊緣不留白
 const TOP = 320 // 下方 1/3 的切弦
 const W = 160 // 一欄的寬 (三欄等分 480)
 const H = C + R - TOP // 面板高度 (320..472)

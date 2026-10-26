@@ -107,7 +107,7 @@ Page({
         x,
         y: 320,
         w: 160,
-        h: 152,
+        h: 160,
         normal_src: `images/${name}_n.png`,
         press_src: `images/${name}_p.png`,
         click_func: fn,
