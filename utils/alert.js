@@ -10,14 +10,13 @@ const SCENE = { light: 23, drive: 5 }
 // (28 大概沒被韌體認得, 掉回預設 20ms)。而場景 5 是 ~500ms 一下就自己重複的循環:
 // 切電時間一超過一輪就會變「震－停－震」, 聽起來就是多了一下。
 // 所以: 一個「tick」一定只佔一輪以內, 長度固定不給使用者調 (力道是手錶給的, 也不能調):
-//   工作開始 480ms x2, 中間停 220ms (比一輪的間隔短): 連起來是一段 ~1.2 秒的長震,
-//   跟最後 3 秒那 60ms 的短震一比就分得出來
+//   階段切換 (工作 / 休息不分) 480ms + 40ms + 480ms: 停的短到聽不出來,
+//   整段是 ~1 秒的連續長震, 跟最後 3 秒那 60ms 的短震一比就分得出來
 const FIXED = {
-  work: { scene: SCENE.drive, cut: 480, repeat: 2, gap: 220 },
+  work: { scene: SCENE.drive, cut: 480, repeat: 2, gap: 40 },
   // 整個模組跑完: 兩下長強震, 每下 480ms, 中間停 600ms (等於一下的長度) 才聽得出是兩下
   done: { scene: SCENE.drive, cut: 480, repeat: 2, gap: 600 },
-  // 休息: 完整一輪 480ms 一下, 比 tick 長很多又比工作短 (工作是多一下)
-  rest: { scene: SCENE.drive, cut: 480 },
+  // rest 不另設: 階段切換統一用 FIXED.work (沒列到的 kind 都走 work)
   // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
   tick: { scene: SCENE.light, cut: 60 },
 }
