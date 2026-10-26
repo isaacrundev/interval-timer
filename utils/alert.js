@@ -9,14 +9,14 @@ const SCENE = { light: 23, drive: 5 }
 // 實測結論: 這台錶只有「連續驅動」場景 (5) 真的有感, 20ms (23/25) 和 600ms 單發 (28) 聽起來一樣小
 // (28 大概沒被韌體認得, 掉回預設 20ms)。而場景 5 是 ~500ms 一下就自己重複的循環:
 // 切電時間一超過一輪就會變「震－停－震」, 聽起來就是多了一下。
-// 所以: 每次提示都只佔一輪以內, 兩級用「一輪內震多久」分 (力道是手錶給的, 不能調):
-//   短 250ms / 長 480ms (剛好一整下, 還不跨到下一輪)
-const DRIVE = [250, 480]
-// 休息與最後 3 秒用固定場景, 刻意不受設定影響
-// 休息比「短」更短的一下 (150ms): 單下、聽得出「這是休息」, 又不會多一聲
-// tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
+// 所以: 每次提示都只佔一輪以內, 長度固定不給使用者調 (力道是手錶給的, 也不能調):
+//   工作開始/完成 480ms (剛好一整下, 還不跨到下一輪)
 const FIXED = {
+  work: { scene: SCENE.drive, cut: 480 },
+  done: { scene: SCENE.drive, cut: 480 },
+  // 休息比工作短的一下 (150ms): 單下、聽得出「這是休息」, 又不會多一聲
   rest: { scene: SCENE.drive, cut: 150 },
+  // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
   tick: { scene: SCENE.light, cut: 60 },
 }
 const SND = { work: 'ALARM', rest: 'MESSAGE', tick: 'CAMERA', done: 'ACHIEVE' }
@@ -43,19 +43,12 @@ export function notify(kind, cfg = load()) {
   const mode = (kind === 'tick' ? cfg.tickAlert : cfg.alert) || 'off'
   if (mode === 'off') return
   cancel()
-  if (mode !== 'sound') vibrate(kind, cfg)
+  if (mode !== 'sound') vibrate(kind)
   if (mode !== 'vib') playSound(SND[kind])
 }
 
-// 設定頁按一下先試聽新的震動長度 (只震, 不出聲)
-export function preview(cfg = load()) {
-  cancel()
-  vibrate('work', cfg)
-}
-
-function vibrate(kind, cfg) {
-  const lv = Math.min(2, Math.max(1, Number(cfg.vibLen) || 2))
-  pulse(gen, FIXED[kind] || { scene: SCENE.drive, cut: DRIVE[lv - 1] })
+function vibrate(kind) {
+  pulse(gen, FIXED[kind] || FIXED.work)
 }
 
 function pulse(g, { scene, cut }) {

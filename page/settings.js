@@ -3,7 +3,6 @@ import { replace } from '@zos/router'
 import { SystemSounds } from '@zos/sensor'
 import { load, save } from '../utils/store'
 import { t } from '../utils/i18n'
-import { preview } from '../utils/alert'
 import { screen, pad } from '../utils/screen'
 
 const ROW = { x: 48, w: 384, h: 72, radius: 36 }
@@ -31,17 +30,8 @@ Page({
       ['vib', 'sound', 'both'],
       t('hintAlign', cfg),
     )
-    this.w.vibLen = this.alertRow(
-      412,
-      'vibLen',
-      t('vibLen', cfg),
-      [t('len1', cfg), t('len2', cfg)],
-      [1, 2],
-      t('hintLen', cfg),
-      () => preview(cfg), // 按一下就試聽新的震動長度
-    )
     this.w.tickAlert = this.alertRow(
-      536,
+      412,
       'tickAlert',
       t('tick', cfg),
       [t('off', cfg), t('vib', cfg), t('sound', cfg), t('both', cfg)],
@@ -49,8 +39,8 @@ Page({
       t('hintTick', cfg),
     )
 
-    pad(root, 692)
-    this.text(0, 660, 32, 20, soundEnabled() ? t('soundOn', cfg) : t('soundOff', cfg), 0x6f7276)
+    pad(root, 568)
+    this.text(0, 536, 32, 20, soundEnabled() ? t('soundOn', cfg) : t('soundOff', cfg), 0x6f7276)
   },
 
   text(x, y, h, size, str, color = 0xffffff) {
