@@ -16,3 +16,15 @@ selenium-debug.log
 
 # pi/hypa 工具在 cwd 寫的暫存 db，不是專案檔
 .hypa/
+
+# 公開 repo 的保險：land.sh 用 `git add -A`，任何簽署金鑰/憑證被丟進專案就會被推上去
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.cer
+.env
+.env.*
+.npmrc
+sign/
