@@ -8,10 +8,12 @@ Amazfit Balance 2（Zepp OS 5 / API_LEVEL 4.2）用的自訂間歇計時器。�
 npm i -g @zeppos/zeus-cli   # 已裝可略過
 zeus login                  # 用 Zepp 帳號登入
 zeus dev                    # 模擬器
-zeus preview                # 產生 QR code，裝到真錶
+bash scripts/watch-install.sh   # 直接裝到真錶（走 bridge）
 ```
 
-裝到真錶：Zepp App →「我的 → 設定 → 關於」連點 Zepp 圖示 7 次 → 開發者模式 → 「掃一掃」掃 terminal 的 QR。
+裝到真錶：手機 Zepp App →「我的 → 設定 → 關於」連點 Zepp 圖示 7 次 → 開發者模式，先把裡面的 Bridge 開起來，再跑 `bash scripts/watch-install.sh`（需要 macOS 內建的 `/usr/bin/expect`）。它會自己 connect + install，約 15 秒；失敗碼 3 = 手機端 Bridge 沒開。
+
+不想用 bridge 也可以走 QR：`zeus preview --target "Amazfit Balance 2"`，再從開發者模式「掃一掃」掃 terminal 的 QR。
 
 `zeus preview` 會用 `app.json` 的 `appId`。第一次請先到 <https://developer.zepp.com> 登記一個 app，把拿到的 appId 填回去；否則 preview 可能被拒。
 
@@ -22,6 +24,7 @@ zeus preview                # 產生 QR code，裝到真錶
 - `page/settings.js` — 設定頁（語言 + 提示方式 / 最後 3 秒）
 - `page/timer.js` — 倒數頁（階段背景色、每秒更新、階段切換提示、播放器式圖示按鈕：跳過／暫停↔播放／停止）
 - `scripts/icons.mjs` — 產生上面那組圖示按鈕的 PNG（`node scripts/icons.mjs`，改形狀就改這支）
+- `scripts/watch-install.sh` — 把目前程式碼經 `zeus bridge` 直接裝到錶上（connect + install，用 expect 開 pty）
 - `utils/i18n.js` — 中／英字典、語言判定、`fmtTime()`（秒 → `分:秒`）
 - `utils/alert.js` — 提示實作（震動長度固定、系統鈴聲播放、取消）
 - `utils/store.js` — 設定讀寫（5 組模組 + 提醒/語言設定，含舊版單組設定升級）

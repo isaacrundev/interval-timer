@@ -22,17 +22,25 @@ cd /tmp/zos-stub && for t in store-test test i18n-test pages-test; do node --imp
 node /tmp/i18n-check.mjs                                    # 字典 key 對稱 + 值必須是字串
 ```
 
-## 每次 commit 後要給 QR code
+## 每次 commit 後要裝到錶上
 
-只要有新的 commit，回應的最後一定要跑一次 preview 並把 QR code 貼給使用者（他要掃進手錶實測）：
+只要有新的 commit，回應的最後一定要跑一次安裝，把新版直接推到使用者的錶（不必再叫他掃 QR code）：
 
 ```bash
-zeus preview --target "Amazfit Balance 2"
+bash scripts/watch-install.sh                     # 預設 Amazfit Balance 2
+bash scripts/watch-install.sh "其他裝置名稱"       # 換錶才要帶參數
 ```
+
+- 這支腳本 = `zeus bridge` 的 `connect` + `install`，用 `expect` 開 pty 餵指令，約 15 秒，exit 0 = 手錶回報安裝成功（輸出 `PUSHED: ...`）
+- **exit 3 / `NO_BRIDGE`**：手機端的 Zepp app 沒開 Bridge。這時**一定要在回應裡提示使用者**：「手機上的 Zepp app 開發者模式裡把 Bridge 打開，我再重跑一次」，然後停下等他確認，不要自己重試到逾時
+- 其他失敗碼：4 = 逾時、5 = bridge 斷線、6 = 建置或安裝失敗；把最後幾行輸出貼給使用者
+- 沒帶參數時的目標寫死在腳本裡（`Amazfit Balance 2`），換錶改那一行
 
 ## 不要用管線餵互動式 CLI
 
-`zeus bridge` 是 vorpal REPL（需要真 TTY）。用 `printf ... | zeus bridge`、`script -q /dev/null` 或背景 `sleep` 餵指令會直接卡死整個工具呼叫（macOS 也沒有 `timeout`）。互動式指令只給使用者自己在終端機跑，agent 不要代跑；非互動需求用 `zeus status` / `zeus preview` 這類一次性指令。
+`zeus bridge` 是 vorpal REPL（需要真 TTY）。用 `printf ... | zeus bridge`、`script -q /dev/null` 或背景 `sleep` 餵指令會直接卡死整個工具呼叫（macOS 也沒有 `timeout`）。互動式指令只給使用者自己在終端機跑，agent 不要代跑。
+
+唯一例外是 `bash scripts/watch-install.sh`：它自己用 `/usr/bin/expect` 開真 pty、每個 `expect` 都有 timeout、跑完一定 `exit` 斷線，所以不會卡住工具呼叫。要動 bridge 就改那支腳本，不要直接跑 `zeus bridge`。
 
 ## 這個專案的使用者偏好
 
