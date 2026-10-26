@@ -13,3 +13,6 @@ selenium-debug.log
 *.ntvs*
 *.njsproj
 *.sln
+
+# pi/hypa 工具在 cwd 寫的暫存 db，不是專案檔
+.hypa/

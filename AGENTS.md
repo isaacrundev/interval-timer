@@ -22,6 +22,8 @@ cd /tmp/zos-stub && for t in store-test test i18n-test pages-test; do node --imp
 node /tmp/i18n-check.mjs                                    # 字典 key 對稱 + 值必須是字串
 ```
 
+`/tmp/zos-stub` 只是測試暫存夾，**它不是 git repo**（在那裡跑 git 一定噴 `fatal: not a git repository`）。看到那句話不代表專案沒版控：專案的 repo 是這個資料夾，remote `origin` = GitHub，branch `main`。
+
 ## 每次 commit 後要裝到錶上
 
 只要有新的 commit，回應的最後一定要跑一次安裝，把新版直接推到使用者的錶（不必再叫他掃 QR code）：
