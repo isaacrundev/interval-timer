@@ -5,8 +5,9 @@
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
 
-const H = 84
+const H = 160
 const CY = H / 2
+const K = H / 84 // 圖示尺寸都照原本 84 高的比例放大
 const SS = 4 // 4×4 超取樣, 邊緣才不會有鋸齒
 const BG = [0x00, 0x00, 0x00]
 const PRESS_BG = [0x33, 0x33, 0x38]
@@ -33,28 +34,29 @@ function inTri(x, y, a, b, c) {
 }
 
 // 圖示都以該段的中心為原點畫 (半高 I 跟著膠囊高度走, 膠囊拉高圖示也一起大)
-const I = 19
+const I = 19 * K
 const icons = {
   // 播放: 向右的三角形
-  play: (x, y, cx) => inTri(x, y, [cx - 11, CY - I], [cx - 11, CY + I], [cx + 14, CY]),
+  play: (x, y, cx) => inTri(x, y, [cx - 11 * K, CY - I], [cx - 11 * K, CY + I], [cx + 14 * K, CY]),
   // 暫停: 兩根直條
   pause: (x, y, cx) =>
-    inRect(x, y, cx - 14, CY - I, cx - 6, CY + I) || inRect(x, y, cx + 6, CY - I, cx + 14, CY + I),
+    inRect(x, y, cx - 14 * K, CY - I, cx - 6 * K, CY + I) ||
+    inRect(x, y, cx + 6 * K, CY - I, cx + 14 * K, CY + I),
   // 停止: 方形
   stop: (x, y, cx) =>
     inRect(x, y, cx - I, CY - I, cx + I, CY + I),
   // 跳過: 三角形 + 尾端直條
   skip: (x, y, cx) =>
-    inTri(x, y, [cx - 15, CY - I], [cx - 15, CY + I], [cx + 9, CY]) ||
-    inRect(x, y, cx + 12, CY - I, cx + 18, CY + I),
+    inTri(x, y, [cx - 15 * K, CY - I], [cx - 15 * K, CY + I], [cx + 9 * K, CY]) ||
+    inRect(x, y, cx + 12 * K, CY - I, cx + 18 * K, CY + I),
 }
 
-// 三顆按鈕的畫布寬度 (左 123 + 中 122 + 右 123 = 368 = 膠囊總寬)
+// 三顆按鈕的畫布寬度 (116 × 3 = 348 = 膠囊總寬, 高度 160 = 螢幕下方 1/3)
 const SLOTS = [
-  { name: 'skip', w: 123, cap: 'l', line: true },
-  { name: 'pause', w: 122, cap: '', line: true },
-  { name: 'play', w: 122, cap: '', line: true },
-  { name: 'stop', w: 123, cap: 'r', line: false },
+  { name: 'skip', w: 116, cap: 'l', line: true },
+  { name: 'pause', w: 116, cap: '', line: true },
+  { name: 'play', w: 116, cap: '', line: true },
+  { name: 'stop', w: 116, cap: 'r', line: false },
 ]
 
 function render(slot, bg) {
@@ -71,7 +73,7 @@ function render(slot, bg) {
           if (!inSeg(px_, py, slot.w, slot.cap)) continue
           bgCov++
           // 分隔線只畫在段內, 高度比膠囊短一截看起來才不會太硬
-          const divider = slot.line && px_ >= slot.w - 1 && py >= CY - 22 && py <= CY + 22
+          const divider = slot.line && px_ >= slot.w - 1 && py >= CY - 22 * K && py <= CY + 22 * K
           const c = icon(px_, py, slot.w / 2) ? INK : divider ? LINE : bg
           for (let i = 0; i < 3; i++) sum[i] += c[i]
         }

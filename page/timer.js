@@ -100,25 +100,25 @@ Page({
       align_v: hmUI.align.CENTER_V,
     })
 
-    // 播放器式圖示: 圖一看就懂, 也不必翻譯 (圖檔來源 scripts/icons.mjs)
-    // 三顆圖示按鈕拼成一個橫放的膠囊 (左 123 + 中 122 + 右 123 = 368), 圖檔來源 scripts/icons.mjs
-    const pill = (x, w, name, fn) =>
+    // 三顆圖示按鈕拼成一整片佔滿螢幕下方 1/3 的膠囊 (348×160, y 280..440), 圖檔來源 scripts/icons.mjs
+    // 圓形螢幕下緣很窄: 左右兩端做成半圓, 整片才落得進圓內 (pages-test 會驗)
+    const pill = (x, name, fn) =>
       root.createWidget(hmUI.widget.BUTTON, {
         x,
-        y: 300,
-        w,
-        h: 84,
+        y: 280,
+        w: 116,
+        h: 160,
         normal_src: `images/${name}_n.png`,
         press_src: `images/${name}_p.png`,
         click_func: fn,
       })
 
-    pill(56, 123, 'skip', () => this.skip())
+    pill(66, 'skip', () => this.skip())
     // BUTTON 的背景圖不能換, 所以暫停/播放是同位疊著的兩顆, 一次只顯示一顆
-    this.pauseBtn = pill(179, 122, 'pause', () => this.togglePause())
-    this.playBtn = pill(179, 122, 'play', () => this.togglePause())
+    this.pauseBtn = pill(182, 'pause', () => this.togglePause())
+    this.playBtn = pill(182, 'play', () => this.togglePause())
     this.playBtn.setProperty(hmUI.prop.VISIBLE, false)
-    pill(301, 123, 'stop', () => this.stop())
+    pill(298, 'stop', () => this.stop())
 
     this.startPhase(0)
     this.timer = setInterval(() => this.tick(), 250)
