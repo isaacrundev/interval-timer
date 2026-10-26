@@ -13,7 +13,8 @@ const SCENE = { light: 23, drive: 5 }
 //   工作開始/完成 480ms (剛好一整下, 還不跨到下一輪)
 const FIXED = {
   work: { scene: SCENE.drive, cut: 480 },
-  done: { scene: SCENE.drive, cut: 480 },
+  // 整個模組跑完: 兩下長強震, 每下 480ms, 中間停 600ms (等於一下的長度) 才聽得出是兩下
+  done: { scene: SCENE.drive, cut: 480, repeat: 2, gap: 600 },
   // 休息比工作短的一下 (150ms): 單下、聽得出「這是休息」, 又不會多一聲
   rest: { scene: SCENE.drive, cut: 150 },
   // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
@@ -48,7 +49,11 @@ export function notify(kind, cfg = load()) {
 }
 
 function vibrate(kind) {
-  pulse(gen, FIXED[kind] || FIXED.work)
+  const f = FIXED[kind] || FIXED.work
+  const g = gen
+  pulse(g, f)
+  // done 是兩下: 第二下等第一下停電 (cut) 再加 gap 才開始, 否則會黏成一下
+  for (let i = 1; i < (f.repeat || 1); i++) setTimeout(() => pulse(g, f), i * (f.cut + (f.gap || 0)))
 }
 
 function pulse(g, { scene, cut }) {
