@@ -10,9 +10,9 @@ const SCENE = { light: 23, drive: 5 }
 // 使用者是只靠長短認提示 (摩斯電碼那樣): 短震 = 最後 3 秒的讀秒, 長震 = 階段切換。
 // 所以階段切換一定要是「單一記長震」: 不能自己疊兩段 (40ms 的縫聽起來一大一小), 也不能用兩下短震。
 // 長度固定不給使用者調 (力道是手錶給的, 也不能調):
-//   階段切換 (工作 / 休息不分) = 場景 5 通電 1500ms 一次到底 = 一記長震 (讀秒的 25 倍長)
+//   階段切換 (工作 / 休息不分) = 一記 1000ms 長震 (讀秒的 16 倍)
 const FIXED = {
-  work: { scene: SCENE.drive, cut: 1500 },
+  work: { scene: SCENE.drive, cut: 1000 },
   // 整個模組跑完: 兩下長強震, 每下 480ms, 中間停 600ms (等於一下的長度) 才聽得出是兩下
   done: { scene: SCENE.drive, cut: 480, repeat: 2, gap: 600 },
   // rest 不另設: 階段切換統一用 FIXED.work (沒列到的 kind 都走 work)
@@ -34,6 +34,21 @@ function vibSensor() {
   return sensor
 }
 const vib = new Vibrator()
+// 動作陣列用的 TYPE 只有 API_LEVEL 3.6+ 才有 (getType); 舊韌體呼叫就噴錯, 所以先試一次就記住
+let types
+let typesTried = false
+function actionTypes() {
+  if (!typesTried) {
+    typesTried = true
+    try {
+      const t = vib.getType()
+      types = t && t.CONTINUOUS !== undefined && t.PAUSE !== undefined ? t : null
+    } catch (e) {
+      types = null
+    }
+  }
+  return types
+}
 let sounds = null
 // 每一輪提示一個號: 舊的排程只停得到自己那一輪, 不會把下一輪切掉
 let gen = 0
@@ -57,15 +72,21 @@ function vibrate(kind) {
 
 function pulse(g, { scene, cut }) {
   if (g !== gen) return
-  const s = vibSensor()
   try {
-    if (s) {
-      s.stop()
-      s.scene = scene
-      s.start()
-    } else {
-      vib.setMode({ mode: scene })
-      vib.start({ mode: scene })
+    const t = actionTypes()
+    // API_LEVEL 3.6 的動作陣列才能真正連續驅動一段指定的長度;
+    // 場景 5 是 ~500ms 一輪自己接下去跑, 通電再久都會被切成一截一截 (使用者聽得出來)
+    if (t) vib.start([{ type: t.CONTINUOUS, duration: cut }, { type: t.PAUSE }])
+    else {
+      const s = vibSensor()
+      if (s) {
+        s.stop()
+        s.scene = scene
+        s.start()
+      } else {
+        vib.setMode({ mode: scene })
+        vib.start({ mode: scene })
+      }
     }
   } catch (e) {
     console.log('vibrate failed', e)
@@ -76,9 +97,12 @@ function pulse(g, { scene, cut }) {
 }
 
 function stopVib() {
+  // 兩條路都要斷電: 動作陣列走 Vibrator, 場景走感測器, 漏一條就會卡著一直震
   try {
     if (sensor) sensor.stop()
-    else vib.stop()
+  } catch (e) {}
+  try {
+    vib.stop()
   } catch (e) {}
 }
 
