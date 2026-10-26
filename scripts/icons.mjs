@@ -71,6 +71,10 @@ function center(slot) {
   return [sx / n, sy / n]
 }
 
+// 三欄的形心 y 不同 (中間那欄最深, 左右被圓弧切掉一角), 但圖示要水平對齊,
+// 所以三欄共用最淺那一欄的形心 y — 再低下去左右兩顆就會被圓弧切到
+const ICON_Y = Math.min(...[0, W, W * 2].map((x) => center({ x })[1]))
+
 // 三欄等分: 左右兩欄的墨跡被圓弧切掉, 中間那欄整片都在
 const SLOTS = [
   { name: 'skip', x: 0, line: true },
@@ -81,7 +85,7 @@ const SLOTS = [
 
 function render(slot, bg) {
   const icon = icons[slot.name]
-  const [cx, cy] = center(slot)
+  const [cx] = center(slot)
   const px = Buffer.alloc(W * H * 4)
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
@@ -96,7 +100,7 @@ function render(slot, bg) {
           // 分隔線畫在兩欄之間, 上下各留一截才不會黏到邊
           const divider =
             slot.line && gx >= slot.x + W - 1 && gy >= TOP + 12 && Math.hypot(gx - C, gy - C) <= R - 12
-          const c = icon(gx, gy, cx, cy) ? INK : divider ? LINE : bg
+          const c = icon(gx, gy, cx, ICON_Y) ? INK : divider ? LINE : bg
           for (let i = 0; i < 3; i++) sum[i] += c[i]
         }
       }
