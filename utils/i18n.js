@@ -40,7 +40,7 @@ export function summary(cfg) {
 
 const T = {
   zh: {
-    title: '間歇計時',
+    title: '間歇計時器',
     start: '開始',
     settings: '設定',
     presets: '間歇模組',
