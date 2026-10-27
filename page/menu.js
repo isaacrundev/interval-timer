@@ -23,9 +23,9 @@ Page({
       y: 56,
       w: 480,
       h: 64,
-      text: 'INTERVAL',
+      text: t('title', c),
       color: 0xffffff,
-      text_size: 52,
+      text_size: 36,
       align_h: hmUI.align.CENTER_H,
       align_v: hmUI.align.CENTER_V,
     })
