@@ -13,8 +13,8 @@ const SCENE = { light: 23, drive: 5 }
 //   階段切換 (工作 / 休息不分) = 一記 1000ms 長震 (讀秒的 16 倍)
 const FIXED = {
   work: { scene: SCENE.drive, cut: 1000 },
-  // 整個模組跑完: 兩下長強震, 每下 480ms, 中間停 600ms (等於一下的長度) 才聽得出是兩下
-  done: { scene: SCENE.drive, cut: 480, repeat: 2, gap: 600 },
+  // 整個模組跑完: 兩下長強震, 每下 480ms, 中間停 350ms 才聽得出是兩下
+  done: { scene: SCENE.drive, cut: 480, repeat: 2, gap: 350 },
   // rest 不另設: 階段切換統一用 FIXED.work (沒列到的 kind 都走 work)
   // tick 文件寫 20ms, 但手錶實際會拖尾, 所以到 60ms 就切電, 三下才分得開
   tick: { scene: SCENE.light, cut: 60 },
