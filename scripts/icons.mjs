@@ -37,6 +37,17 @@ function inTri(x, y, a, b, c) {
 // 圖示都以該段的中心為原點畫 (半高 I 跟著膠囊高度走, 膠囊拉高圖示也一起大)
 const I = 26 // 圖示半高 (弧形面板邊緣窄, 小一點才不會貼到圓弧)
 const K = I / 19 // 圖示都以原本 19 半高時的座標畫, 這裡照比例縮放
+
+const DEG = Math.PI / 180
+// 角度: 0 = 右邊, 遞增 = 螢幕上順時針 (y 軸向下), 缺口外的環才算在裡面
+function inRing(x, y, cx, cy, ro, ri, gapFrom, gapTo) {
+  const d = Math.hypot(x - cx, y - cy)
+  if (d > ro || d < ri) return false
+  let a = Math.atan2(y - cy, x - cx)
+  if (a < 0) a += Math.PI * 2
+  return a < gapFrom || a > gapTo
+}
+
 const icons = {
   // 播放: 向右的三角形
   play: (x, y, cx, cy) => inTri(x, y, [cx - 11 * K, cy - I], [cx - 11 * K, cy + I], [cx + 14 * K, cy]),
@@ -51,6 +62,28 @@ const icons = {
   skip: (x, y, cx, cy) =>
     inTri(x, y, [cx - 15 * K, cy - I], [cx - 15 * K, cy + I], [cx + 9 * K, cy]) ||
     inRect(x, y, cx + 12 * K, cy - I, cx + 18 * K, cy + I),
+  // 重新開始: 順時針的環, 缺口開在正上方, 箭頭接在缺口左端往右指
+  restart: (x, y, cx, cy) => {
+    const A0 = 252 * DEG // 缺口左端 = 箭頭所在
+    const A1 = 302 * DEG // 缺口右端
+    if (inRing(x, y, cx, cy, 15 * K, 9.5 * K, A0, A1)) return true
+    const rm = 12 * K
+    const bx = cx + Math.cos(A0) * rm
+    const by = cy + Math.sin(A0) * rm
+    const tx = -Math.sin(A0) // 順時針切線
+    const ty = Math.cos(A0)
+    const rx = Math.cos(A0) // 徑向 = 箭頭的底邊方向
+    const ry = Math.sin(A0)
+    const HL = 9 * K
+    const HW = 6.5 * K
+    return inTri(
+      x,
+      y,
+      [bx + tx * HL, by + ty * HL],
+      [bx + rx * HW, by + ry * HW],
+      [bx - rx * HW, by - ry * HW],
+    )
+  },
 }
 
 // 圖示擺在這一欄的形心: 左右兩欄被圓弧切掉一塊, 擺正中央會看起來偏掉
@@ -78,6 +111,8 @@ const ICON_Y = Math.min(...[0, W, W * 2].map((x) => center({ x })[1]))
 // 三欄等分: 左右兩欄的墨跡被圓弧切掉, 中間那欄整片都在
 const SLOTS = [
   { name: 'skip', x: 0, line: true },
+  // 同一欄的兩張臉: 跑完之後左邊那顆換成重新開始
+  { name: 'restart', x: 0, line: true },
   { name: 'pause', x: W, line: true },
   { name: 'play', x: W, line: true },
   { name: 'stop', x: W * 2, line: false },
