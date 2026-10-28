@@ -117,6 +117,8 @@ Page({
     // 跑完之後左邊換成「重新開始」: 同一個位置疊著兩顆, 一次只顯示一顆 (理由同暫停/播放)
     this.restartBtn = pill(0, 'restart', () => this.restart())
     this.restartBtn.setProperty(hmUI.prop.VISIBLE, false)
+    // 中間欄的底色: 跑完只收圖示、面板不能缺一角, 所以底色墊在最下面 (沒有作用, 按下去也不變色)
+    pill(160, 'blank', () => {})
     // BUTTON 的背景圖不能換, 所以暫停/播放是同位疊著的兩顆, 一次只顯示一顆
     this.pauseBtn = pill(160, 'pause', () => this.togglePause())
     this.playBtn = pill(160, 'play', () => this.togglePause())

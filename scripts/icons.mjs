@@ -63,11 +63,12 @@ const icons = {
     inTri(x, y, [cx - 15 * K, cy - I], [cx - 15 * K, cy + I], [cx + 9 * K, cy]) ||
     inRect(x, y, cx + 12 * K, cy - I, cx + 18 * K, cy + I),
   // 重新開始: 順時針的環, 缺口開在正上方, 箭頭接在缺口左端往右指
+  // 外徑 = I (跟停止的方塊一樣大): 三顆圖示擺在一起才不會一顆大聲一顆小聲
   restart: (x, y, cx, cy) => {
-    const A0 = 252 * DEG // 缺口左端 = 箭頭所在
-    const A1 = 302 * DEG // 缺口右端
-    if (inRing(x, y, cx, cy, 15 * K, 9.5 * K, A0, A1)) return true
-    const rm = 12 * K
+    const A0 = 250 * DEG // 缺口左端 = 箭頭所在
+    const A1 = 298 * DEG // 缺口右端
+    if (inRing(x, y, cx, cy, I, 12.5 * K, A0, A1)) return true
+    const rm = 14.5 * K
     const bx = cx + Math.cos(A0) * rm
     const by = cy + Math.sin(A0) * rm
     const tx = -Math.sin(A0) // 順時針切線
@@ -75,7 +76,7 @@ const icons = {
     const rx = Math.cos(A0) // 徑向 = 箭頭的底邊方向
     const ry = Math.sin(A0)
     const HL = 9 * K
-    const HW = 6.5 * K
+    const HW = 5.5 * K
     return inTri(
       x,
       y,
@@ -84,6 +85,8 @@ const icons = {
       [bx - rx * HW, by - ry * HW],
     )
   },
+  // 空白: 不畫任何墨跡, 只留面板底面
+  blank: () => false,
 }
 
 // 圖示擺在這一欄的形心: 左右兩欄被圓弧切掉一塊, 擺正中央會看起來偏掉
@@ -113,6 +116,8 @@ const SLOTS = [
   { name: 'skip', x: 0, line: true },
   // 同一欄的兩張臉: 跑完之後左邊那顆換成重新開始
   { name: 'restart', x: 0, line: true },
+  // 中間欄的純底皮: 跑完收掉圖示時面板不能缺一角 (按下去也不該變色, 因為沒有作用)
+  { name: 'blank', x: W, line: true, press: false },
   { name: 'pause', x: W, line: true },
   { name: 'play', x: W, line: true },
   { name: 'stop', x: W * 2, line: false },
@@ -193,6 +198,6 @@ const dir = new URL('../assets/default.r/images/', import.meta.url)
 mkdirSync(dir, { recursive: true })
 for (const slot of SLOTS) {
   writeFileSync(new URL(`${slot.name}_n.png`, dir), render(slot, BG))
-  writeFileSync(new URL(`${slot.name}_p.png`, dir), render(slot, PRESS_BG))
+  writeFileSync(new URL(`${slot.name}_p.png`, dir), render(slot, slot.press === false ? BG : PRESS_BG))
 }
 console.log(`wrote ${SLOTS.length * 2} icons to ${dir.pathname}`)
